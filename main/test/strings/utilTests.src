@@ -1,0 +1,26 @@
+#import Assertions from ../assertions;
+#import StringsUtil from ../../src/strings/util;
+
+UtilTests = {}
+
+UtilTests._logPrefix = "main.test.string.utilTests: "
+
+UtilTests.run = function()
+    timestamp = time
+
+    Assertions.assertEquals(0, StringsUtil.compareTo(null, null), self._logPrefix + "(1) ")
+    Assertions.assertEquals(1, StringsUtil.compareTo("", null), self._logPrefix + "(2) ")
+    Assertions.assertEquals(-1, StringsUtil.compareTo(null, ""), self._logPrefix + "(3) ")
+    Assertions.assertEquals(0, StringsUtil.compareTo("", ""), self._logPrefix + "(4) ")
+    Assertions.assertEquals(1, StringsUtil.compareTo("abc123", ""), self._logPrefix + "(5) ")
+    Assertions.assertEquals(-1, StringsUtil.compareTo("", "abc123"), self._logPrefix + "(6) ")
+    Assertions.assertEquals(0, StringsUtil.compareTo("abc123", "abc123"), self._logPrefix + "(7) ")
+    Assertions.assertEquals(-1, StringsUtil.compareTo("abc", "abc123"), self._logPrefix + "(8) ")
+    Assertions.assertEquals(1, StringsUtil.compareTo("abc123", "abc"), self._logPrefix + "(9) ")
+    Assertions.assertEquals(-1, StringsUtil.compareTo("abc123", "abc321"), self._logPrefix + "(10) ")
+    Assertions.assertEquals(1, StringsUtil.compareTo("abc321", "abc123"), self._logPrefix + "(11) ")
+
+    print(self._logPrefix + "Tests ok, execution time: " + (time - timestamp) + "s")
+end function
+
+module.exports = UtilTests

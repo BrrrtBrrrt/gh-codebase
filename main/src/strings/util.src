@@ -1,0 +1,44 @@
+Util = {}
+Util.compareTo = function(stringLeft, stringRight)
+    if stringLeft == null and stringRight == null then return 0
+    if stringLeft != null and stringRight == null then return 1
+    if stringLeft == null and stringRight != null then return -1
+    stringLeftLen = stringLeft.len
+    stringRightLen = stringRight.len
+    if stringLeftLen == 0 and stringRightLen == 0 then return 0
+    if stringLeftLen > 0 and stringRightLen == 0 then return 1
+    if stringLeftLen == 0 and stringRightLen > 0 then return -1
+
+    stringLeftUni = []
+    stringRightUni = []
+
+    for i in range(0, stringLeftLen - 1)
+        stringLeftUni.push(stringLeft[i].code)
+    end for
+
+    for i in range(0, stringRightLen - 1)
+        stringRightUni.push(stringRight[i].code)
+    end for
+
+    stringLeftUniLen = stringLeftUni.len
+    stringRightUniLen = stringRightUni.len
+
+    if stringLeftUniLen == stringRightUniLen then
+        if stringLeftUni == stringRightUni then return 0
+    else
+        if stringLeftUni[:stringRightUniLen] == stringRightUni then return 1
+        if stringRightUni[:stringLeftUniLen] == stringLeftUni then return -1
+    end if
+    for i in range(0, stringLeftUniLen)
+        if i >= stringRightUniLen then return 1
+        if stringLeftUni[i] != stringRightUni[i] then
+            if stringLeftUni[i] > stringRightUni[i] then
+                return 1
+            else
+                return -1
+            end if
+        end if
+    end for
+end function
+
+module.exports = Util

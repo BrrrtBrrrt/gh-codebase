@@ -1,0 +1,8 @@
+Assertions = {}
+
+Assertions.assertEquals = function(expected, actual, logPrefix)
+    if logPrefix == null then logPrefix = ""
+    if expected != actual then exit(logPrefix + "Expected value is """ + expected + """, actual value is """ + actual + """")
+end function
+
+module.exports = Assertions

@@ -1,0 +1,11 @@
+#import RegexEngine from regex/regexEngine;
+
+App = {}
+
+App.test = function()
+    print("APP RUN")
+end function
+
+
+app = new App
+app.test

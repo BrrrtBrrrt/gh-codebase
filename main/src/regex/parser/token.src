@@ -1,0 +1,25 @@
+Token = {}
+
+// tokens
+Token.CHAR = "CHAR"
+Token.L_PARENTHESIS = "L_PARENTHESIS"
+Token.R_PARENTHESIS = "R_PARENTHESIS"
+Token.L_BRACKET = "L_BRACKET"
+Token.PIPE = "PIPE"
+Token.QUANTIFIER = "QUANTIFIER"
+Token.ESCAPE = "ESCAPE"
+
+// syntax elements
+Token.REGEX = "REGEX"
+Token.SELECTOR = "SELECTOR"
+Token.RANGE = "RANGE"
+Token.QUANTIFIED_EXPR = "QUANTIFIED_EXPR"
+Token.GROUP = "GROUP"
+Token.EXPRESSION = "EXPRESSION"
+Token.CHAR_RANGE = "CHAR_RANGE"
+Token.REGEXP = "REGEXP"
+
+// aux elements
+Token.ROOT = "ROOT"
+
+module.exports = Token

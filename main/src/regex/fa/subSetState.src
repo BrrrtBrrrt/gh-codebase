@@ -1,0 +1,66 @@
+#import Set from ../../collections/set;
+#import State from state;
+
+SubSetState = {}
+
+SubSetState._mark = null
+SubSetState._states = new Set
+SubSetState._state = new State
+SubSetState._id = null
+
+SubSetState.init = function(states)
+    self._state.init1
+    self._states = states
+    self._id = self._buildId
+end function
+
+SubSetState._buildId = function()
+    ids = []
+    for s in self._states.toList
+        ids.push(s.getId)
+    end for
+    ids = ids.sort
+    return "[" + ids.join(", ") + "]"
+end function
+
+SubSetState.isMark = function()
+    return self._mark
+end function
+
+SubSetState.setMark = function(mark)
+    self._mark = mark
+end function
+
+SubSetState.getStates = function()
+    return self._states
+end function
+
+SubSetState.getState = function()
+    return self._state
+end function
+
+SubSetState.getId = function()
+    return self._id
+end function
+
+SubSetState.setInitial = function(b)
+    self._state.setInitial(b)
+end function
+
+State.equals = function(obj)
+    if obj == self then return true
+    if obj == null then return false
+    if not (obj isa State) then return false
+    if self._id == null then
+        if obj.getId != null then return false
+    else if self._id != obj._id then
+        return false
+    end if
+    return true
+end function
+
+SubSetState.isEmpty = function()
+    return self._states.toList.len == 0
+end function
+
+module.exports = SubSetState

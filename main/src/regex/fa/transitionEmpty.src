@@ -1,0 +1,19 @@
+#import TransitionBase from transitionBase;
+
+TransitionEmpty = TransitionBase
+
+TransitionEmpty.init = function()
+    return self.setRepresentation("empty")
+end function
+
+TransitionEmpty.match = function(character)
+    return true
+end function
+
+TransitionEmpty.clone = function()
+    transitionEmpty = new TransitionEmpty
+    transitionEmpty.init
+    return transitionEmpty
+end function
+
+module.exports = TransitionEmpty

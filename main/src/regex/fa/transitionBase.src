@@ -1,0 +1,54 @@
+#import StringsUtil from ../../strings/util;
+
+TransitionBase = {}
+
+TransitionBase._logPrefix = "main.src.regex.fa.transitionBase: "
+
+TransitionBase._nextState = null
+TransitionBase._representation = null
+
+TransitionBase.getNextState = function()
+    return self._nextState
+end function
+
+TransitionBase.setNextState = function(nextState)
+    self._nextState = nextState
+end function
+
+TransitionBase.getRepresentation = function()
+    return self._representation
+end function
+
+TransitionBase.setRepresentation = function(representation)
+    self._representation = representation
+end function
+
+TransitionBase.equals = function(o)
+    if o == self then return true
+    if o == null then return false
+    if not (o isa TransitionBase) then return false
+    if self._representation == null then
+        if o.getRepresentation != null then return false
+    else if self._representation != o.getRepresentation then
+        return false
+    end if
+    return true
+end function
+
+TransitionBase.toString = function()
+    return self._representation
+end function
+
+TransitionBase.compareTo = function(o)
+    return StringsUtil.compareTo(self._representation, outer.getRepresentation)
+end function
+
+TransitionBase.match = function(character)
+    return false
+end function
+
+TransitionBase.clone = function(character)
+    exit(self._logPrefix + "(clone) CloneNotSupportedException: TransitionBase")
+end function
+
+module.exports = TransitionBase

@@ -1,0 +1,19 @@
+Util = {}
+Util.binarySearch = function(list, x)
+    l = 0
+    r = list.len - 1
+    while l <= r
+        m = l + (r - 1) / 2
+        if list[m] == x then
+            return m
+        end if
+        if list[m] < x then
+            l = m + 1
+        else
+            r = m - 1
+        end if
+    end while
+    return -1
+end function
+
+module.exports = Util

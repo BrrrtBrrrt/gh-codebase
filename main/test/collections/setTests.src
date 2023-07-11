@@ -1,0 +1,54 @@
+#import Assertions from ../assertions;
+#import Set from ../../src/collections/set;
+
+SetTests = {}
+
+SetTests._logPrefix = "main.test.collections.setTests: "
+
+SetTests.run = function()
+    timestamp = time
+
+    Test = {}
+    
+    Test.firstName = null
+    Test.lastName = null
+
+    Test.init = function(firstName, lastName)
+        self.firstName = firstName
+        self.lastName = lastName
+    end function
+
+    Test.equals = function(o)
+        if o == self then return true
+        if not (o isa Test) then return false
+        return self.firstName == o.firstName and self.lastName == o.lastName
+    end function
+
+    test1 = new Test
+    test1.init("0", "0")
+    test2 = new Test
+    test2.init("0", "1")
+    set = new Set
+
+    Assertions.assertEquals(0, set.toList.len, self._logPrefix + "(1) ")
+    set.add(test1)
+    Assertions.assertEquals(1, set.toList.len, self._logPrefix + "(2) ")
+    set.add(test2)
+    Assertions.assertEquals(2, set.toList.len, self._logPrefix + "(3) ")
+    set.add(test2)
+    Assertions.assertEquals(2, set.toList.len, self._logPrefix + "(4) ")
+    set.add("test")
+    Assertions.assertEquals(3, set.toList.len, self._logPrefix + "(5) ")
+    set.add("test")
+    Assertions.assertEquals(3, set.toList.len, self._logPrefix + "(6) ")
+    set.add(test1)
+    Assertions.assertEquals(3, set.toList.len, self._logPrefix + "(7) ")
+    set.add("test2")
+    Assertions.assertEquals(4, set.toList.len, self._logPrefix + "(8) ")
+    set.add("test")
+    Assertions.assertEquals(4, set.toList.len, self._logPrefix + "(9) ")
+
+    print(self._logPrefix + "Tests ok, execution time: " + (time - timestamp) + "s")
+end function
+
+module.exports = SetTests

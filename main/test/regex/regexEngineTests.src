@@ -1,0 +1,27 @@
+#import Assertions from ../assertions;
+#import RegexEngine from ../../src/regex/regexEngine;
+#import RegexMatchResult from ../../src/regex/regexMatchResult;
+
+RegexEngineTests = {}
+
+RegexEngineTests._logPrefix = "main.test.regex.regexEngineTests: "
+
+RegexEngineTests.run = function()
+    timestamp = time
+
+    /*text = "kjdsk65sdksdk78odla98dasdf90dsakdsj"
+    regex = RegexEngine.compile("[0-9]+")
+    regexMatchResult = new RegexMatchResult
+    while regex.match(text, regexMatchResult)
+        start = regexMatchResult.getMatchStartPosition
+        length = regexMatchResult.getMatchLength
+        print("Übereinstimmung an Position " + start + " gefunden. Passender Text: " + (start + length))
+        regexMatchResult.setPosition(start + length);
+    end while*/
+
+    //Assertions.assertEquals(0, StringsUtil.compareTo(null, null), self._logPrefix + "(1) ")
+
+    print(self._logPrefix + "Tests ok, execution time: " + (time - timestamp) + "s")
+end function
+
+module.exports = RegexEngineTests

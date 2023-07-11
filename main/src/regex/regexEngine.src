@@ -1,0 +1,19 @@
+#import LexicalAnalyzer from parser/lexicalAnalyzer;
+#import Parser from parser/parser;
+
+RegexEngine = {}
+RegexEngine.compile = function(regexExpr)
+    lexicalAnalyzer = new LexicalAnalyzer
+    lexicalAnalyzer.init(regexExpr)
+    syntaxAnalyzer = new Parser
+    syntaxAnalyzer.init(lexicalAnalyzer)
+    syntaxNodeTree = syntaxAnalyzer.analyze()
+    print(syntaxNodeTree)
+    print("---------------")
+    //nfa = AutomatonBuilder.generateFromAST(syntaxNodeTree)
+    //dfa = AutomatonBuilder.generateDFAFromNFA(nfa)
+    //return new Regex(dfa)
+    return null
+end function
+
+module.exports = RegexEngine

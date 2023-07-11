@@ -1,0 +1,19 @@
+#import Assertions from ../../assertions;
+#import CollectionsListsUtil from ../../../src/collections/lists/util;
+
+UtilTests = {}
+
+UtilTests._logPrefix = "main.test.collections.lists.utilTests: "
+
+UtilTests.run = function()
+    timestamp = time
+
+    pollResult = CollectionsListsUtil.poll(["Geeks", 4, "Geeks", 8])
+
+    Assertions.assertEquals("Geeks", pollResult[0], self._logPrefix + "(1) ")
+    Assertions.assertEquals([4, "Geeks", 8], pollResult[1], self._logPrefix + "(2) ")
+
+    print(self._logPrefix + "Tests ok, execution time: " + (time - timestamp) + "s")
+end function
+
+module.exports = UtilTests

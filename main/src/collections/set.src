@@ -1,0 +1,27 @@
+Set = {}
+
+Set._set = []
+
+Set._exists = function(element)
+    implementsEquals = element isa map and element.hasIndex("equals")
+    for e in self._set
+        if implementsEquals then
+            if element.equals(e) then return true
+        else
+            if element == e then return true
+        end if
+    end for
+    return false
+end function
+
+Set.add = function(element)
+    if not self._exists(element) then
+        self._set.push(element)
+    end if
+end function
+
+Set.toList = function()
+    return self._set
+end function
+
+module.exports = Set
