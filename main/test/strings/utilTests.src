@@ -19,6 +19,7 @@ UtilTests.run = function()
     Assertions.assertEquals(1, StringsUtil.compareTo("abc123", "abc"), self._logPrefix + "(9) ")
     Assertions.assertEquals(-1, StringsUtil.compareTo("abc123", "abc321"), self._logPrefix + "(10) ")
     Assertions.assertEquals(1, StringsUtil.compareTo("abc321", "abc123"), self._logPrefix + "(11) ")
+    Assertions.assertEquals(1, 0, self._logPrefix + "(12) ")
 
     print(self._logPrefix + "Tests ok, execution time: " + (time - timestamp) + "s")
 end function
