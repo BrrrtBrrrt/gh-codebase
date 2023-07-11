@@ -28,5 +28,6 @@ jobs:
         cache: 'npm'
     - run: npm ci
     - run: npm run prod.build
-    - run: npm run prod.build.Tests.RunTests
-    - run: echo "test $(!!)"
+    - run: npm run prod.build.Tests.RunTests > testsResult.txt
+    - run: set /p testsResult= < testsResult.txt
+    - run: echo "%testsResult%"
