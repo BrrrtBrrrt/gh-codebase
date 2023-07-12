@@ -28,8 +28,9 @@ jobs:
         cache: 'npm'
     - run: npm ci
     - run: npm run prod.build
-    - run: npm run prod.build.Tests.RunTests > testsResult.txt
-    - run: set /p testsResult= < testsResult.txt
-    - run: echo "%testsResult%"
+    - run: npm run prod.build.Tests.RunTests
+    #- run: npm run prod.build.Tests.RunTests > testsResult.txt
+    #- run: set /p testsResult= < testsResult.txt
+    #- run: echo "%testsResult%"
     #- run: FOR /F "tokens=*" %g IN ('npm run prod.build.Tests.RunTests') do (SET testsResult=%g)
     #- run: echo "%testsResult%"
