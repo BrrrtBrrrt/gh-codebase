@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "description": "",
   "dependencies": {
-    "greybel-js": "^1.9.12"
+    "greybel-js": "^2.0.0"
   },
   "devDependencies": {
     "nodemon": "^3.0.1"
