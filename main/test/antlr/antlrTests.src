@@ -6,7 +6,7 @@ AntlrTests = {}
 AntlrTests._logPrefix = "main.test.collections.antlrTests: "
 
 AntlrTests.run = function()
-    timestamp = time
+    timestampTest = time
 
     grammar = ""
     grammar += "<expr> ::= <factor> <expr-D>" + char(10)
@@ -37,7 +37,7 @@ AntlrTests.run = function()
     end if
     print(parseResponse.value.printGraph())
 
-    print(self._logPrefix + "Tests ok, execution time: " + (time - timestamp) + "s")
+    print(self._logPrefix + "Tests ok, execution time: " + (time - timestampTest) + "s")
 end function
 
 module.exports = AntlrTests
