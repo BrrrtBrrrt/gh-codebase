@@ -1,0 +1,18 @@
+RuleOption = {}
+
+RuleOption.tokens = null
+
+RuleOption.init = function()
+    self.tokens = []
+end function
+
+RuleOption.toString = function()
+    tokens = []
+    for token in self.tokens
+        tokens.push(token.toString())
+    end for
+    if tokens.len == 0 then return """"""
+    return tokens.join(" ")
+end function
+
+module.exports = RuleOption

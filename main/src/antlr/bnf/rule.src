@@ -1,0 +1,23 @@
+Rule = {}
+
+Rule.identifier = null
+Rule.options = null
+Rule.isRoot = null
+
+Rule.init = function(identifier, isRoot = false)
+    self.identifier = identifier
+    self.options = []
+    self.isRoot = isRoot
+end function
+
+Rule.toString = function()
+    options = []
+    for option in self.options
+        options.push(option.toString())
+    end for
+    isRootTag = ""
+    if self.isRoot then isRootTag = "*"
+    return "<" + self.identifier + ">" + isRootTag + " ::= " + options.join(" | ")
+end function
+
+module.exports = Rule

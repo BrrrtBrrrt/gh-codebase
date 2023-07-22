@@ -1,0 +1,19 @@
+Syntax = {}
+
+Syntax.rules = null
+
+Syntax.init = function()
+    self.rules = []
+end function
+
+Syntax.toString = function()
+    buffer = ""
+
+    for rule in self.rules
+        buffer += rule.toString() + char(10)
+    end for
+
+    return buffer
+end function
+
+module.exports = Syntax

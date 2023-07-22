@@ -1,0 +1,21 @@
+#import MessageType from messageType;
+
+Message = {}
+
+Message.message = null
+Message.type = null
+
+Message.init = function(message, type)
+    self.message = message
+    if type == null then
+        self.type = MessageType.INFO
+    else
+        self.type = type
+    end if
+end function
+
+Message.toString = function()
+    return "[" + self.type + "] " + self.message + ""
+end function
+
+module.exports = Message

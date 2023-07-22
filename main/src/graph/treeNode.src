@@ -1,0 +1,44 @@
+TreeNode = {}
+
+TreeNode.label = null
+TreeNode.childs = null
+TreeNode.id = null
+
+TreeNode.init = function(label, childs)
+    self.label = label
+    if childs == null then childs = []
+    self.childs = childs
+    self.id = null
+end function
+
+TreeNode._printGraphRek = function(treeNode, lines)
+    if treeNode isa map and treeNode.hasIndex("childs") and treeNode.childs != null then
+        if treeNode.childs.len > 0 then
+            for child in treeNode.childs
+                lines.push(treeNode.id + " -> " + child.id + ";")
+                lines.push(treeNode.id + " [label=""" + treeNode.label + """];")
+                self._printGraphRek(child, lines)
+            end for
+        else
+            lines.push(treeNode.id + " [label=""" + treeNode.label + " - [Empty]""];")
+        end if
+    else
+        label = treeNode.label
+        if label == char(10) then label = "New Line Symbol"
+        if label == " " then label = "Space Symbol"
+        if label == "" then label = "Empty Symbol"
+        lines.push(treeNode.id + " [label=""" + label + """];")
+    end if
+end function
+
+TreeNode.printGraph = function()
+    lines = []
+    self._printGraphRek(self, lines)
+    print("digraph G {")
+    for line in lines
+        print("  " + line)
+    end for
+    print("}")
+end function
+
+module.exports = TreeNode

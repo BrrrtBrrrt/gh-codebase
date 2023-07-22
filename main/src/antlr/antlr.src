@@ -1,0 +1,597 @@
+#import TreeNode from ../graph/treeNode;
+#import Util from ../util/util;
+#import MessageType from ../util/messageType;
+#import Rule from bnf/rule;
+#import RuleOption from bnf/ruleOption;
+#import Syntax from bnf/syntax;
+#import Token from bnf/token;
+
+Antlr = {}
+
+Antlr._generateParser = function(syntax)
+    response = Util.responseGet()
+
+    rootRule = null
+
+    for rule in syntax.rules
+        if rule.isRoot then
+            rootRule = rule
+            break
+        end if
+    end for
+
+    if rootRule == null then
+        response.error = true
+        Util.responseAddMessage(response, "No root rule found", MessageType.ERROR)
+        return response
+    end if
+
+    parser = {}
+
+    parser._input = null
+    parser._lastId = null
+    parser._verbose = null
+    parser._parseMethodOptionsMap = {}
+    parser._parseMethodAllowsEmptyMap = {}
+    parser._optionTokensMap = {}
+    parser._rootRuleIdentifier = rootRule.identifier
+
+    parser._getExpectedGotMessage = function(expected, got)
+        // ------------------- PARSER SCOPE - START -------------------
+        return "Expected: """ + expected + """; got: """ + got + """"
+        // ------------------- PARSER SCOPE - END -------------------
+    end function
+
+    parser._peek = function()
+        // ------------------- PARSER SCOPE - START -------------------
+        response = Util.responseGet()
+
+        if self._input.len > 0 then
+            response.value = self._input[0]
+        else
+            response.value = ""
+        end if
+
+        return response
+        // ------------------- PARSER SCOPE - END -------------------
+    end function
+
+    parser._eat = function(c)
+        // ------------------- PARSER SCOPE - START -------------------
+        response = Util.responseGet()
+
+        peekResponse = self._peek()
+        if Util.handleResponse(response, peekResponse) then return response
+        peekValue = peekResponse.value
+
+        if peekValue == c then
+            self._input = self._input[1:]
+            response.value = c
+        else
+            response.error = true
+            Util.responseAddMessage(response, self._getExpectedGotMessage(c, peekValue), MessageType.ERROR)
+            return response
+        end if
+
+        return response
+        // ------------------- PARSER SCOPE - END -------------------
+    end function
+
+    parser._more = function()
+        // ------------------- PARSER SCOPE - START -------------------
+        response = Util.responseGet()
+
+        response.value = self._input.len() > 0
+
+        return response
+        // ------------------- PARSER SCOPE - END -------------------
+    end function
+
+    parser._getParseFunctionName = function(ruleIdentifier)
+        // ------------------- PARSER SCOPE - START -------------------
+        return "_parse" + str(hash(ruleIdentifier)).replace("-", "N")
+        // ------------------- PARSER SCOPE - END -------------------
+    end function
+
+    parser.parse = function(input, verbose = false)
+        // ------------------- PARSER SCOPE - START -------------------
+        response = Util.responseGet()
+
+        self._input = input
+        self._lastId = 0
+        self._verbose = verbose
+
+        parseResponse = self[self._getParseFunctionName(self._rootRuleIdentifier)](self._rootRuleIdentifier)
+        response.messages += parseResponse.messages
+        if parseResponse.error then
+            response.error = true
+            return response
+        end if
+
+        response.value = parseResponse.value
+
+        return response
+        // ------------------- PARSER SCOPE - END -------------------
+    end function
+
+    for rule in syntax.rules
+        parser._parseMethodOptionsMap[rule.identifier] = []
+        existEmptyOption = false
+        for option in rule.options
+            if option.tokens.len() == 0 then
+                existEmptyOption = true
+                break
+            end if
+        end for
+        parser._parseMethodAllowsEmptyMap[rule.identifier] = existEmptyOption
+
+        parser[parser._getParseFunctionName(rule.identifier)] = function(ruleIdentifier)
+            // ------------------- PARSER SCOPE - START -------------------
+            response = Util.responseGet()
+
+            input = self._input
+
+            parseOptionResponse = null
+
+            optionIndex = 0
+            for optionMethodName in self._parseMethodOptionsMap[ruleIdentifier]
+                self._input = input
+                parseOptionResponse = self[optionMethodName](ruleIdentifier, optionIndex)
+                if not parseOptionResponse.error then
+                    if self._rootRuleIdentifier == ruleIdentifier then
+                        moreResponse = self._more()
+                        response.messages += moreResponse.messages
+                        if moreResponse.error then
+                            response.error = true
+                            return response
+                        end if
+                        moreValue = moreResponse.value
+                        if moreValue then
+                            response.error = true
+                            peekResponse = self._peek()
+                            response.messages += peekResponse.messages
+                            if peekResponse.error then
+                                response.error = true
+                                return response
+                            end if
+                            peekValue = peekResponse.value
+                            Util.responseAddMessage(response, self._getExpectedGotMessage("End of input", peekValue), MessageType.ERROR)
+                            return response
+                        end if
+                    end if
+                    response.messages += parseOptionResponse.messages
+                    response.value = parseOptionResponse.value
+                    return response
+                end if
+                optionIndex += 1
+            end for
+
+            if self._parseMethodAllowsEmptyMap[ruleIdentifier] then
+                treeNode = new TreeNode
+                treeNode.init(ruleIdentifier)
+                treeNode.id = self._lastId
+                self._lastId += 1
+                response.value = treeNode
+            else
+                response.error = true
+                response.messages += parseOptionResponse.messages
+                Util.responseAddMessage(response, "Error while parsing """ + ruleIdentifier + """", MessageType.ERROR)
+            end if
+
+            return response
+            // ------------------- PARSER SCOPE - END -------------------
+        end function
+        for i in range(0, rule.options.len - 1)
+            option = rule.options[i]
+            methodName = parser._getParseFunctionName(rule.identifier) + "_" + str(i)
+            parser._parseMethodOptionsMap[rule.identifier].push(methodName)
+            parser._optionTokensMap[rule.identifier + "_" + i] = option.tokens
+            parser[methodName] = function(ruleIdentifier, optionIndex)
+                // ------------------- PARSER SCOPE - START -------------------
+                response = Util.responseGet()
+
+                treeNode = new TreeNode
+                treeNode.init(ruleIdentifier)
+                treeNode.id = self._lastId
+                self._lastId += 1
+
+                for token in self._optionTokensMap[ruleIdentifier + "_" + optionIndex]
+                    if token.isTerminal then
+                        for c in token.value
+                            eatResponse = self._eat(c)
+                            response.messages += eatResponse.messages
+                            if eatResponse.error then
+                                response.error = true
+                                return response
+                            end if
+                            treeNode.childs.push({ "id": self._lastId, "label": eatResponse.value })
+                            self._lastId += 1
+                        end for
+                    else
+                        parseResponse = self[self._getParseFunctionName(token.value)](token.value)
+                        response.messages += parseResponse.messages
+                        if parseResponse.error then
+                            response.error = true
+                            return response
+                        end if
+                        treeNode.childs.push(parseResponse.value)
+                    end if
+                end for
+
+                response.value = treeNode
+
+                return response
+                // ------------------- PARSER SCOPE - END -------------------
+            end function
+
+            for token in option.tokens
+                parser._optionTokensMap[rule.identifier + "_" + i]
+            end for
+        end for
+    end for
+
+    response.value = parser
+
+    return response
+end function
+
+Antlr._compileRuleIdentifierRek = function(currentTreeNode, identifier)
+    response = Util.responseGet()
+
+    if currentTreeNode.hasIndex("childs") then
+        for child in currentTreeNode.childs
+            if child.label != "rule-name" and child.label != "rule-name-D" then
+                if child.label == "-" then
+                    identifier.push(child.label)
+                else
+                    identifier.push(child.childs[0].label)
+                end if
+            else
+                compileRuleIdentifierRekResponse = self._compileRuleIdentifierRek(child, identifier)
+                if Util.handleResponse(response, compileRuleIdentifierRekResponse) then return response
+            end if
+        end for
+    end if
+
+    return response
+end function
+
+Antlr._compileTextRek = function(currentTreeNode, text)
+    response = Util.responseGet()
+
+    if currentTreeNode.hasIndex("childs") then
+        for child in currentTreeNode.childs
+            if child.label == "character1" or child.label == "character2" then
+                text.push(child.childs[0].childs[0].childs[0].label)
+            else
+                compileTextRekResponse = self._compileTextRek(child, text)
+                if Util.handleResponse(response, compileTextRekResponse) then return response
+            end if
+        end for
+    end if
+
+    return response
+end function
+
+Antlr._compileTokensRek = function(currentTreeNode, tokens)
+    response = Util.responseGet()
+
+    if currentTreeNode.hasIndex("childs") then
+        for child in currentTreeNode.childs
+            if child.label == "list" then
+                compileTokensRekResponse = self._compileTokensRek(child, tokens)
+                if Util.handleResponse(response, compileTokensRekResponse) then return response
+            else if child.label == "term" and child.childs.len() == 3 and child.childs[1].label == "rule-name" then
+                ruleName = []
+                compileRuleIdentifierRekResponse = self._compileRuleIdentifierRek(child.childs[1], ruleName)
+                if Util.handleResponse(response, compileRuleIdentifierRekResponse) then return response
+                if ruleName.len() > 0 then
+                    token = new Token
+                    token.init(false, ruleName.join(""))
+                    tokens.push(token)
+                end if
+            else if child.label == "term" and child.childs.len() == 1 and child.childs[0].label == "literal" then
+                text = []
+
+                compileTextRekResponse = self._compileTextRek(child.childs[0].childs[1], text)
+                if Util.handleResponse(response, compileTextRekResponse) then return response
+
+                if text.len() > 0 then
+                    token = new Token
+                    token.init(true, text.join(""))
+                    tokens.push(token)
+                end if
+            end if
+        end for
+    end if
+
+    return response
+end function
+
+Antlr._compileRuleOptionsRek = function(currentTreeNode, options)
+    response = Util.responseGet()
+
+    ruleOption = new RuleOption
+    ruleOption.init()
+    options.push(ruleOption)
+
+    if currentTreeNode.hasIndex("childs") then
+        for child in currentTreeNode.childs
+            if child.label == "expression" then
+                compileRuleOptionsRekResponse = self._compileRuleOptionsRek(child, options)
+                if Util.handleResponse(response, compileRuleOptionsRekResponse) then return response
+            else if child.label == "list" then
+                tokens = []
+                compileTokensRekResponse = self._compileTokensRek(child, tokens)
+                if Util.handleResponse(response, compileTokensRekResponse) then return response
+                ruleOption.tokens = tokens
+            end if
+        end for
+    end if
+
+    return response
+end function
+
+Antlr._compileBnfRek = function(currentTreeNode, rules)
+    response = Util.responseGet()
+
+    ruleRaw = currentTreeNode.childs[0]
+
+    rule = new Rule
+    rule.init()
+    rules.push(rule)
+
+    for child in ruleRaw.childs
+        if child.label == "rule-name" then
+            identifier = []
+            compileRuleIdentifierRekResponse = self._compileRuleIdentifierRek(child, identifier)
+            if Util.handleResponse(response, compileRuleIdentifierRekResponse) then return response
+            rule.identifier = identifier.join("")
+        else if child.label == "expression" then
+            options = []
+            compileRuleOptionsRekResponse = self._compileRuleOptionsRek(child, options)
+            if Util.handleResponse(response, compileRuleOptionsRekResponse) then return response
+            rule.options = options
+        end if
+    end for
+
+    if currentTreeNode.childs.len() > 1 then
+        syntaxRaw = currentTreeNode.childs[1]
+        compileBnfRekResponse = self._compileBnfRek(syntaxRaw, rules)
+        if Util.handleResponse(response, compileBnfRekResponse) then return response
+    end if
+
+    return response
+end function
+
+Antlr._determineAndSetRootRule = function(rules)
+    response = Util.responseGet()
+
+    isRootRuleFound = false
+
+    for rule1 in rules
+        isRule1UsedByRule2 = false
+        for rule2 in rules
+            if rule1.identifier == rule2.identifier then continue
+
+            for option in rule2.options
+                for token in option.tokens
+                    if rule1.identifier == token.value then
+                        isRule1UsedByRule2 = true
+                        break
+                    end if
+                end for
+                if isRule1UsedByRule2 then break
+            end for
+
+            if isRule1UsedByRule2 then break
+        end for
+        if not isRule1UsedByRule2 then
+            rule1.isRoot = true
+            isRootRuleFound = true
+            break
+        end if
+    end for
+
+    if not isRootRuleFound then
+        response.error = true
+        Util.responseAddMessage(response, "Root rule couldn't be determined", MessageType.ERROR)
+    end if
+
+    return response
+end function
+
+Antlr._compileBnf = function(parseTree)
+    response = Util.responseGet()
+
+    syntax = new Syntax
+    syntax.init()
+
+    rules = []
+    compileBnfRekResponse = self._compileBnfRek(parseTree, rules)
+    if Util.handleResponse(response, compileBnfRekResponse) then return response
+
+    determineAndSetRootRuleResponse = self._determineAndSetRootRule(rules)
+    if Util.handleResponse(response, determineAndSetRootRuleResponse) then return response
+
+    syntax.rules = rules
+
+    response.value = syntax
+
+    return response
+end function
+
+Antlr._generateSyntax = function(rulesRaw, rootRuleIdentifier)
+    response = Util.responseGet()
+
+    syntax = new Syntax
+    syntax.init()
+
+    for ruleRaw in rulesRaw
+        rule = new Rule
+        rule.init(ruleRaw[0], ruleRaw[0] == rootRuleIdentifier)
+        syntax.rules.push(rule)
+        optionsRaw = ruleRaw[1]
+        for tokensRaw in optionsRaw
+            ruleOption = new RuleOption
+            ruleOption.init()
+            rule.options.push(ruleOption)
+            for tokenRaw in tokensRaw
+                token = new Token
+                token.init(tokenRaw[1], tokenRaw[0])
+                ruleOption.tokens.push(token)
+            end for
+        end for
+    end for
+
+    response.value = syntax
+
+    return response
+end function
+
+Antlr._getBnfSyntax = function()
+    response = Util.responseGet()
+
+    rulesRaw = [
+        ["syntax", [
+            [["rule", 0], ["syntax", 0]],
+            [["rule", 0]],
+        ]],
+        ["rule", [
+            [["opt-whitespace", 0], ["<", 1], ["rule-name", 0], [">", 1], ["opt-whitespace", 0], ["::=", 1], ["opt-whitespace", 0], ["expression", 0], ["line-end", 0]]
+        ]],
+        ["opt-whitespace", [
+            [[" ", 1], ["opt-whitespace", 0]],
+            []
+        ]],
+        ["expression", [
+            [["list", 0], ["opt-whitespace", 0], ["|", 1], ["opt-whitespace", 0], ["expression", 0]],
+            [["list", 0]]
+        ]],
+        ["line-end", [
+            [[" ", 1], ["opt-whitespace", 0], ["EOL", 0], ["line-end-D", 0]],
+            [["EOL", 0], ["line-end-D", 0]]
+        ]],
+        ["line-end-D", [
+            [[" ", 1], ["opt-whitespace", 0], ["EOL", 0], ["line-end-D", 0], ["line-end-D", 0]],
+            [["EOL", 0], ["line-end-D", 0], ["line-end-D", 0]],
+            []
+        ]],
+        ["list", [
+            [["term", 0], [" ", 1], ["opt-whitespace", 0], ["list", 0]],
+            [["term", 0], ["list", 0]],
+            [["term", 0]]
+        ]],
+        ["term", [
+            [["literal", 0]],
+            [["<", 1], ["rule-name", 0], [">", 1]]
+        ]],
+        ["literal", [
+            [["""", 1], ["text1", 0], ["""", 1]],
+            [["'", 1], ["text2", 0], ["'", 1]]
+        ]],
+        ["text1", [
+            [["character1", 0], ["text1", 0]],
+            []
+        ]],
+        ["text2", [
+            [["character2", 0], ["text2", 0]],
+            []
+        ]],
+        ["character", [
+            [["letter", 0]],
+            [["digit", 0]],
+            [["symbol", 0]]
+        ]],
+        ["letter", [
+            [["A", 1]], [["B", 1]], [["C", 1]], [["D", 1]], [["E", 1]], [["F", 1]], [["G", 1]],
+            [["H", 1]], [["I", 1]], [["J", 1]], [["K", 1]], [["L", 1]], [["M", 1]], [["N", 1]],
+            [["O", 1]], [["P", 1]], [["Q", 1]], [["R", 1]], [["S", 1]], [["T", 1]], [["U", 1]],
+            [["V", 1]], [["W", 1]], [["X", 1]], [["Y", 1]], [["Z", 1]],
+
+            [["a", 1]], [["b", 1]], [["c", 1]], [["d", 1]], [["e", 1]], [["f", 1]], [["g", 1]],
+            [["h", 1]], [["i", 1]], [["j", 1]], [["k", 1]], [["l", 1]], [["m", 1]], [["n", 1]],
+            [["o", 1]], [["p", 1]], [["q", 1]], [["r", 1]], [["s", 1]], [["t", 1]], [["u", 1]],
+            [["v", 1]], [["w", 1]], [["x", 1]], [["y", 1]], [["z", 1]]
+        ]],
+        ["digit", [
+            [["0", 1]], [["1", 1]], [["2", 1]], [["3", 1]], [["4", 1]], [["5", 1]], [["6", 1]],
+            [["7", 1]], [["8", 1]], [["9", 1]]
+        ]],
+        ["symbol", [
+            [["|", 1]], [[" ", 1]], [["!", 1]], [["#", 1]], [["$", 1]], [["%", 1]], [["&", 1]],
+            [["(", 1]], [[")", 1]], [["*", 1]], [["+", 1]], [[",", 1]], [["-", 1]], [[".", 1]],
+            [["/", 1]], [[":", 1]], [[";", 1]], [[">", 1]], [["=", 1]], [["<", 1]], [["?", 1]],
+            [["@", 1]], [["[", 1]], [[char(92), 1]], [["]", 1]], [["^", 1]], [["_", 1]], [["`", 1]],
+            [["{", 1]], [["}", 1]], [["~", 1]]
+        ]],
+        ["character1", [
+            [["'", 1]],
+            [["character", 0]]
+        ]],
+        ["character2", [
+            [["""", 1]],
+            [["character", 0]]
+        ]],
+        ["rule-name", [
+            [["letter", 0], ["rule-name-D", 0]]
+        ]],
+        ["rule-name-D", [
+            [["rule-name", 0]],
+            [["digit", 0], ["rule-name-D", 0]],
+            [["-", 1], ["rule-name-D", 0]],
+            []
+        ]],
+        ["EOL", [
+            [[char(10), 1]]
+        ]]
+    ]
+
+    generateSyntaxResponse = self._generateSyntax(rulesRaw, "syntax")
+    if Util.handleResponse(response, generateSyntaxResponse) then return response
+    syntax = generateSyntaxResponse.value
+
+    response.value = syntax
+
+    return response
+end function
+
+Antlr.generateParser = function(grammar)
+    response = Util.responseGet()
+
+    timestamp = time()
+    getBnfSyntaxResponse = self._getBnfSyntax()
+    print("self._getBnfSyntax() execution time: " + (time() - timestamp) + "s")
+    if Util.handleResponse(response, getBnfSyntaxResponse) then return response
+    bnfSyntax = getBnfSyntaxResponse.value
+
+    timestamp = time()
+    generateParserResponse = self._generateParser(bnfSyntax)
+    print("self._generateParser(bnfSyntax) execution time: " + (time() - timestamp) + "s")
+    if Util.handleResponse(response, generateParserResponse) then return response
+    bnfParser = generateParserResponse.value
+
+    timestamp = time()
+    parseResponse = bnfParser.parse(grammar)
+    print("bnfParser.parse(grammar) execution time: " + (time() - timestamp) + "s")
+    if Util.handleResponse(response, parseResponse) then return response
+    parseTree = parseResponse.value
+
+    timestamp = time()
+    compileBnfResponse = self._compileBnf(parseTree)
+    print("self._compileBnf(parseTree) execution time: " + (time() - timestamp) + "s")
+    if Util.handleResponse(response, compileBnfResponse) then return response
+    syntax = compileBnfResponse.value
+
+    timestamp = time()
+    generateParserResponse = self._generateParser(syntax)
+    print("self._generateParser(syntax) execution time: " + (time() - timestamp) + "s")
+    if Util.handleResponse(response, generateParserResponse) then return response
+    parser = generateParserResponse.value
+
+    response.value = parser
+
+    return response
+end function
+
+module.exports = Antlr

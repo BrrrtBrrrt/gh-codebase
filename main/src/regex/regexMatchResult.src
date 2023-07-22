@@ -1,3 +1,0 @@
-RegexMatchResult = {}
-
-module.exports = RegexMatchResult

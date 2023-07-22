@@ -1,0 +1,21 @@
+Token = {}
+
+Token.isTerminal = null
+Token.value = null
+
+Token.init = function(isTerminal, value)
+    self.isTerminal = isTerminal
+    self.value = value
+end function
+
+Token.toString = function()
+    value = self.value
+    if value == char(10) then value = "\" + char(1564) + "n"
+    if self.isTerminal then
+        return """" + value + """"
+    else
+        return "<" + value + ">"
+    end if
+end function
+
+module.exports = Token

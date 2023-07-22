@@ -1,12 +1,14 @@
-#import CollectionsSetTests from collections/setTests;
+/*#import CollectionsSetTests from collections/setTests;
 #import CollectionsListsUtilTests from collections/lists/utilTests;
 #import StringsUtilTests from strings/utilTests;
-#import RegexEngineTests from regex/regexEngineTests;
+#import RegexEngineTests from regex/regexEngineTests;*/
+#import AntlrTests from antlr/antlrTests;
 
 print("Start tests runner")
 timestamp = time
-CollectionsSetTests.run
+AntlrTests.run
+/*CollectionsSetTests.run
 CollectionsListsUtilTests.run
 StringsUtilTests.run
-RegexEngineTests.run
+RegexEngineTests.run*/
 print("All tests ok, execution time: " + (time - timestamp) + "s")

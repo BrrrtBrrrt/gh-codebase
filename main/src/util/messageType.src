@@ -1,0 +1,12 @@
+MessageType = {}
+
+MessageType.ALL = "ALL"
+MessageType.TRACE = "TRACE"
+MessageType.DEBUG = "DEBUG"
+MessageType.INFO = "INFO"
+MessageType.WARN = "WARN"
+MessageType.ERROR = "ERROR"
+MessageType.FATAL = "FATAL"
+MessageType.OFF = "OFF"
+
+module.exports = MessageType

@@ -1,6 +1,0 @@
-Util = {}
-Util.poll = function(l)
-    return [l[0], l[1:]]
-end function
-
-module.exports = Util
