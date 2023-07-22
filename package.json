@@ -25,7 +25,6 @@
     "prod.build.Src": "greybel -u -mc 150000 -i main/src/app.src distout/src",
     "prod.build.Tests": "greybel -u -mc 150000 -i main/test/testsRunner.src dist/test",
     "prod.build.Tests.RunTests": "greybel-execute dist/test/build/testsRunner.src",
-
     "testAntlr": "greybel-execute main/test/testsRunner.src"
   },
   "author": "",
