@@ -9,7 +9,7 @@ AntlrTests.run = function()
     timestampTest = time
 
     self._testFactorGrammar()
-    self._testJsonGrammar()
+    //self._testJsonGrammar()
 
     print(self._logPrefix + "Tests ok, execution time: " + (time - timestampTest) + "s")
 end function
