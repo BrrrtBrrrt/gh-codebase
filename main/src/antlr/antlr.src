@@ -35,16 +35,19 @@ Antlr._generateParser = function(syntax)
     parser._parseMethodAllowsEmptyMap = {}
     parser._optionTokensMap = {}
     parser._rootRuleIdentifier = rootRule.identifier
+    parser._util = Util
+    parser._treeNode = TreeNode
+    parser._messageType = MessageType
 
     parser._getExpectedGotMessage = function(expected, got)
         // ------------------- PARSER SCOPE - START -------------------
-        return "Expected: """ + expected + """; got: """ + got + """"
+        return "Expected: """ + expected + """; got: """ + got + """ Content ahead: " + char(10) + self._input
         // ------------------- PARSER SCOPE - END -------------------
     end function
 
     parser._peek = function()
         // ------------------- PARSER SCOPE - START -------------------
-        response = Util.responseGet()
+        response = self._util.responseGet()
 
         if self._input.len > 0 then
             response.value = self._input[0]
@@ -58,10 +61,10 @@ Antlr._generateParser = function(syntax)
 
     parser._eat = function(c)
         // ------------------- PARSER SCOPE - START -------------------
-        response = Util.responseGet()
+        response = self._util.responseGet()
 
         peekResponse = self._peek()
-        if Util.handleResponse(response, peekResponse) then return response
+        if self._util.handleResponse(response, peekResponse) then return response
         peekValue = peekResponse.value
 
         if peekValue == c then
@@ -69,7 +72,7 @@ Antlr._generateParser = function(syntax)
             response.value = c
         else
             response.error = true
-            Util.responseAddMessage(response, self._getExpectedGotMessage(c, peekValue), MessageType.ERROR)
+            self._util.responseAddMessage(response, self._getExpectedGotMessage(c, peekValue), self._messageType.ERROR)
             return response
         end if
 
@@ -79,7 +82,7 @@ Antlr._generateParser = function(syntax)
 
     parser._more = function()
         // ------------------- PARSER SCOPE - START -------------------
-        response = Util.responseGet()
+        response = self._util.responseGet()
 
         response.value = self._input.len() > 0
 
@@ -95,7 +98,7 @@ Antlr._generateParser = function(syntax)
 
     parser.parse = function(input, verbose = false)
         // ------------------- PARSER SCOPE - START -------------------
-        response = Util.responseGet()
+        response = self._util.responseGet()
 
         self._input = input
         self._lastId = 0
@@ -128,7 +131,7 @@ Antlr._generateParser = function(syntax)
 
         parser[parser._getParseFunctionName(rule.identifier)] = function(this, ruleIdentifier)
             // ------------------- PARSER SCOPE - START -------------------
-            response = Util.responseGet()
+            response = this._util.responseGet()
 
             input = this._input
 
@@ -157,7 +160,7 @@ Antlr._generateParser = function(syntax)
                                 return response
                             end if
                             peekValue = peekResponse.value
-                            Util.responseAddMessage(response, this._getExpectedGotMessage("End of input", peekValue), MessageType.ERROR)
+                            this._util.responseAddMessage(response, this._getExpectedGotMessage("End of input", peekValue), this._messageType.ERROR)
                             return response
                         end if
                     end if
@@ -169,15 +172,15 @@ Antlr._generateParser = function(syntax)
             end for
 
             if this._parseMethodAllowsEmptyMap[ruleIdentifier] then
-                treeNode = new TreeNode
+                treeNode = new this._treeNode
                 treeNode.init(ruleIdentifier)
-                treeNode.id = self._lastId
+                treeNode.id = this._lastId
                 this._lastId += 1
                 response.value = treeNode
             else
                 response.error = true
                 response.messages += parseOptionResponse.messages
-                Util.responseAddMessage(response, "Error while parsing """ + ruleIdentifier + """", MessageType.ERROR)
+                this._util.responseAddMessage(response, "Error while parsing """ + ruleIdentifier + """", this._messageType.ERROR)
             end if
 
             return response
@@ -190,9 +193,9 @@ Antlr._generateParser = function(syntax)
             parser._optionTokensMap[rule.identifier + "_" + i] = option.tokens
             parser[methodName] = function(this, ruleIdentifier, optionIndex)
                 // ------------------- PARSER SCOPE - START -------------------
-                response = Util.responseGet()
+                response = this._util.responseGet()
 
-                treeNode = new TreeNode
+                treeNode = new this._treeNode
                 treeNode.init(ruleIdentifier)
                 treeNode.id = this._lastId
                 this._lastId += 1
@@ -526,7 +529,7 @@ Antlr._getBnfSyntax = function()
             [["(", 1]], [[")", 1]], [["*", 1]], [["+", 1]], [[",", 1]], [["-", 1]], [[".", 1]],
             [["/", 1]], [[":", 1]], [[";", 1]], [[">", 1]], [["=", 1]], [["<", 1]], [["?", 1]],
             [["@", 1]], [["[", 1]], [[char(92), 1]], [["]", 1]], [["^", 1]], [["_", 1]], [["`", 1]],
-            [["{", 1]], [["}", 1]], [["~", 1]]
+            [["{", 1]], [["}", 1]], [["~", 1]], [[char(10), 1]]
         ]],
         ["character1", [
             [["'", 1]],
@@ -562,33 +565,23 @@ end function
 Antlr.generateParser = function(grammar)
     response = Util.responseGet()
 
-    timestamp = time()
     getBnfSyntaxResponse = self._getBnfSyntax()
-    print("self._getBnfSyntax() execution time: " + (time() - timestamp) + "s")
     if Util.handleResponse(response, getBnfSyntaxResponse) then return response
     bnfSyntax = getBnfSyntaxResponse.value
 
-    timestamp = time()
     generateParserResponse = self._generateParser(bnfSyntax)
-    print("self._generateParser(bnfSyntax) execution time: " + (time() - timestamp) + "s")
     if Util.handleResponse(response, generateParserResponse) then return response
     bnfParser = generateParserResponse.value
 
-    timestamp = time()
     parseResponse = bnfParser.parse(grammar)
-    print("bnfParser.parse(grammar) execution time: " + (time() - timestamp) + "s")
     if Util.handleResponse(response, parseResponse) then return response
     parseTree = parseResponse.value
 
-    timestamp = time()
     compileBnfResponse = self._compileBnf(parseTree)
-    print("self._compileBnf(parseTree) execution time: " + (time() - timestamp) + "s")
     if Util.handleResponse(response, compileBnfResponse) then return response
     syntax = compileBnfResponse.value
 
-    timestamp = time()
     generateParserResponse = self._generateParser(syntax)
-    print("self._generateParser(syntax) execution time: " + (time() - timestamp) + "s")
     if Util.handleResponse(response, generateParserResponse) then return response
     parser = generateParserResponse.value
 
@@ -597,4 +590,4 @@ Antlr.generateParser = function(grammar)
     return response
 end function
 
-//module.exports = Antlr
+module.exports = Antlr

@@ -27,8 +27,8 @@
     "BACKUP_prod.build.Tests.RunTests": "greybel-execute dist/test/build/testsRunner.src",
     "testAntlr": "greybel-execute main/test/testsRunner.src",
     "build": "npm run build.Src && npm run build.Test",
-    "build.Src": "greybel -u -mc 150000 -id /home/1337/Desktop/libs/codebase -i main/src/antlr/antlr.src dist/src",
-    "build.Test": "greybel -u -mc 150000 -id /home/1337/Desktop/libs/codebase -i main/test/testsRunner.src dist/test"
+    "build.Src": "greybel -dno -dlo -u -mc 150000 -id /home/1337/Desktop/libs/codebase -i main/src/codebase.src dist/src",
+    "build.Test": "greybel -dno -dlo -u -mc 150000 -id /home/1337/Desktop/libs/codebase -i main/test/testsRunner.src dist/test"
   },
   "author": "",
   "license": "ISC"

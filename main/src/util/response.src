@@ -7,12 +7,6 @@ Response.value = null
 Response.toString = function()
     errorStr = "No"
     if self.error then errorStr = "Yes"
-    valueStr = null
-    if self.value != null and self.value isa map and self.value.hasIndex("toString") then
-        valueStr = self.value.toString()
-    else
-        valueStr = "" + self.value
-    end if
 
     buffer = ""
     buffer += "Error: " + errorStr + char(10)
@@ -21,9 +15,6 @@ Response.toString = function()
     for message in self.messages
         buffer += message.toString() + char(10)
     end for
-    buffer += char(10)
-    buffer += "Value: " + char(10)
-    buffer += valueStr
 
     return buffer
 end function
