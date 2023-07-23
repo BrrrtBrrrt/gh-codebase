@@ -101,7 +101,8 @@ Antlr._generateParser = function(syntax)
         self._lastId = 0
         self._verbose = verbose
 
-        parseResponse = self[self._getParseFunctionName(self._rootRuleIdentifier)](self._rootRuleIdentifier)
+        parseFunction = @self[self._getParseFunctionName(self._rootRuleIdentifier)]
+        parseResponse = parseFunction(self, self._rootRuleIdentifier)
         response.messages += parseResponse.messages
         if parseResponse.error then
             response.error = true
@@ -125,21 +126,22 @@ Antlr._generateParser = function(syntax)
         end for
         parser._parseMethodAllowsEmptyMap[rule.identifier] = existEmptyOption
 
-        parser[parser._getParseFunctionName(rule.identifier)] = function(ruleIdentifier)
+        parser[parser._getParseFunctionName(rule.identifier)] = function(this, ruleIdentifier)
             // ------------------- PARSER SCOPE - START -------------------
             response = Util.responseGet()
 
-            input = self._input
+            input = this._input
 
             parseOptionResponse = null
 
             optionIndex = 0
-            for optionMethodName in self._parseMethodOptionsMap[ruleIdentifier]
-                self._input = input
-                parseOptionResponse = self[optionMethodName](ruleIdentifier, optionIndex)
+            for optionMethodName in this._parseMethodOptionsMap[ruleIdentifier]
+                this._input = input
+                parseOptionFunction = @this[optionMethodName]
+                parseOptionResponse = parseOptionFunction(this, ruleIdentifier, optionIndex)
                 if not parseOptionResponse.error then
-                    if self._rootRuleIdentifier == ruleIdentifier then
-                        moreResponse = self._more()
+                    if this._rootRuleIdentifier == ruleIdentifier then
+                        moreResponse = this._more()
                         response.messages += moreResponse.messages
                         if moreResponse.error then
                             response.error = true
@@ -148,14 +150,14 @@ Antlr._generateParser = function(syntax)
                         moreValue = moreResponse.value
                         if moreValue then
                             response.error = true
-                            peekResponse = self._peek()
+                            peekResponse = this._peek()
                             response.messages += peekResponse.messages
                             if peekResponse.error then
                                 response.error = true
                                 return response
                             end if
                             peekValue = peekResponse.value
-                            Util.responseAddMessage(response, self._getExpectedGotMessage("End of input", peekValue), MessageType.ERROR)
+                            Util.responseAddMessage(response, this._getExpectedGotMessage("End of input", peekValue), MessageType.ERROR)
                             return response
                         end if
                     end if
@@ -166,11 +168,11 @@ Antlr._generateParser = function(syntax)
                 optionIndex += 1
             end for
 
-            if self._parseMethodAllowsEmptyMap[ruleIdentifier] then
+            if this._parseMethodAllowsEmptyMap[ruleIdentifier] then
                 treeNode = new TreeNode
                 treeNode.init(ruleIdentifier)
                 treeNode.id = self._lastId
-                self._lastId += 1
+                this._lastId += 1
                 response.value = treeNode
             else
                 response.error = true
@@ -186,29 +188,30 @@ Antlr._generateParser = function(syntax)
             methodName = parser._getParseFunctionName(rule.identifier) + "_" + str(i)
             parser._parseMethodOptionsMap[rule.identifier].push(methodName)
             parser._optionTokensMap[rule.identifier + "_" + i] = option.tokens
-            parser[methodName] = function(ruleIdentifier, optionIndex)
+            parser[methodName] = function(this, ruleIdentifier, optionIndex)
                 // ------------------- PARSER SCOPE - START -------------------
                 response = Util.responseGet()
 
                 treeNode = new TreeNode
                 treeNode.init(ruleIdentifier)
-                treeNode.id = self._lastId
-                self._lastId += 1
+                treeNode.id = this._lastId
+                this._lastId += 1
 
-                for token in self._optionTokensMap[ruleIdentifier + "_" + optionIndex]
+                for token in this._optionTokensMap[ruleIdentifier + "_" + optionIndex]
                     if token.isTerminal then
                         for c in token.value
-                            eatResponse = self._eat(c)
+                            eatResponse = this._eat(c)
                             response.messages += eatResponse.messages
                             if eatResponse.error then
                                 response.error = true
                                 return response
                             end if
-                            treeNode.childs.push({ "id": self._lastId, "label": eatResponse.value })
-                            self._lastId += 1
+                            treeNode.childs.push({ "id": this._lastId, "label": eatResponse.value })
+                            this._lastId += 1
                         end for
                     else
-                        parseResponse = self[self._getParseFunctionName(token.value)](token.value)
+                        parseFunction = @this[this._getParseFunctionName(token.value)]
+                        parseResponse = parseFunction(this, token.value)
                         response.messages += parseResponse.messages
                         if parseResponse.error then
                             response.error = true
@@ -594,4 +597,4 @@ Antlr.generateParser = function(grammar)
     return response
 end function
 
-module.exports = Antlr
+//module.exports = Antlr
